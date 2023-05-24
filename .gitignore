@@ -1,0 +1,38 @@
+# (pyinstaller) Build directories
+build/*
+dist/*
+
+# (pyinstaller) Generated tool files
+/tools/ICT_tools/bin2xls/a.out
+/tools/app_info.txt
+
+# Python Byte-compiled / optimized / DLL files
+#   Note: gitignore.io has a python template but it has too much in it
+#         and we end up filtering valid files out of kernel trees such as
+#         the 'lib/' directories.  Reduce the set to the bytecode files.
+__pycache__/
+*.py[cod]
+
+
+### Vim ###
+# Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+
+# Coc configuration directory
+.vim
+
+### vscode ###
+.vscode/*
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+*.code-workspace
+
+### Logs ###
+logs/*
