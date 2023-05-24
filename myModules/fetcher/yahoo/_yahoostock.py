@@ -30,7 +30,7 @@ class YhaooTWStockFetcher(BaseFetcher):
             FinanceInfo.calendar: NOT_SUPPORT,
         }
 
-    def fetch_data(self, sid:int|str, finance_info:str):
+    def fetch_data(self, sid:int, finance_info:str):
         url = get_url(sid, finance_info)
         response = requests.get(url, timeout=30)
         root = etree.HTML(response.text)
