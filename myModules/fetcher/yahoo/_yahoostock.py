@@ -19,7 +19,7 @@ class YhaooTWStockFetcher(BaseFetcher):
             FinanceInfo.chip_margin: NOT_SUPPORT,
             FinanceInfo.chip_major_holders: NOT_SUPPORT,
             FinanceInfo.chip_insider_transactions: NOT_SUPPORT,
-            FinanceInfo.dividend: NOT_SUPPORT,
+            FinanceInfo.dividend: Parser.get_dividend,
             FinanceInfo.revenue: NOT_SUPPORT,
             FinanceInfo.eps: NOT_SUPPORT,
             FinanceInfo.income_statement: NOT_SUPPORT,
