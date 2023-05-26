@@ -1,6 +1,7 @@
 import requests
 from lxml import etree
 from myModules.fetcher import BaseFetcher
+from ._parse import Parser
 from ._utils import *
 
 NOT_SUPPORT = None
