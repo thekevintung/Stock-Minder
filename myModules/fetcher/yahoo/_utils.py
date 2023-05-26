@@ -68,3 +68,30 @@ class Parser:
             df = pd.concat([df, pd.DataFrame(data)], axis=1)
         df.columns = headers
         return df
+    
+    def get_dividend(root:etree._Element):
+        # get table headers
+        xpaths = [
+            '//*[@id="main-2-QuoteDividend-Proxy"]/div/section[2]/div[2]/div[1]/div/div[1]/div[1]',
+            '//*[@id="main-2-QuoteDividend-Proxy"]/div/section[2]/div[2]/div[1]/div/div']
+        xpaths = '|'.join(xpaths)
+        elements = root.xpath(xpaths)
+        headers = [element.text for element in elements if element.text is not None]
+
+        # get table data
+        xpaths = [
+            '//*[@id="main-2-QuoteDividend-Proxy"]/div/section[2]/div[2]/div[2]/div/div/ul/li/div/div/span',
+            '//*[@id="main-2-QuoteDividend-Proxy"]/div/section[2]/div[2]/div[2]/div/div/ul/li/div/div']
+        xpaths = '|'.join(xpaths)
+        elements = root.xpath(xpaths)
+        data = [element.text for element in elements if element.text is not None]
+        df = pd.DataFrame([data[i:i+8] for i in range(0, len(data), 8)])
+        
+        # get the years column and merge to table data
+        xpath = '//*[@id="main-2-QuoteDividend-Proxy"]/div/section[2]/div[2]/div[2]/div/div/ul/li/div/div[1]/div[1]'
+        elements = root.xpath(xpath)
+        buf = [element.text for element in elements if element.text is not None]
+        df.insert(loc=0, column='', value=buf)
+
+        df.columns = headers
+        return df
