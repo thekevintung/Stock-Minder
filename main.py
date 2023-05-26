@@ -38,4 +38,4 @@ if  __name__ == '__main__':
     job = schedule.every().day.at("08:30").do(get_chip_major)
     while True:
         schedule.run_pending()
-        time.sleep(50)
+        time.sleep(30)

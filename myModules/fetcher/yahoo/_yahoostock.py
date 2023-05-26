@@ -32,7 +32,7 @@ class YhaooTWStockFetcher(BaseFetcher):
 
     def fetch_data(self, sid:int, finance_info:str):
         url = get_url(sid, finance_info)
-        response = requests.get(url, timeout=30)
+        response = requests.get(url, timeout=5)
         root = etree.HTML(response.text)
         handler = self.parse_handles.get(finance_info)
         if handler is NOT_SUPPORT:
