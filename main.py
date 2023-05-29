@@ -35,7 +35,12 @@ def get_chip_major():
 
 if  __name__ == '__main__':
     print("Start Fetching the chip major data...")
-    job = schedule.every().day.at("08:30").do(get_chip_major)
+    timing = "08:30"
+    schedule.every().monday.at(timing).do(get_chip_major)
+    schedule.every().tuesday.at(timing).do(get_chip_major)
+    schedule.every().wednesday.at(timing).do(get_chip_major)
+    schedule.every().thursday.at(timing).do(get_chip_major)
+    schedule.every().friday.at(timing).do(get_chip_major)
     while True:
         schedule.run_pending()
         time.sleep(30)
