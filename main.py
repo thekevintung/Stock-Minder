@@ -10,7 +10,8 @@ minding_sid_list = [
     2618,
     5274,
     3443,
-    2454
+    2454,
+    1904
 ]
 
 def get_chip_major():
