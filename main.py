@@ -17,9 +17,8 @@ minding_sid_list = [
 def get_chip_major():
     fetcher = YhaooTWStockFetcher()
     today = datetime.now().date().strftime("%Y-%m-%d")
-    week = f"Week {datetime.now().isocalendar()[1]}"
     homepath = os.path.expanduser("~")
-    basedir = os.path.join(homepath, "Downloads", "Major-Chip-data", week)
+    basedir = os.path.join(homepath, "Downloads", "Major-Chip-data")
     savefolder = os.path.join(basedir, today)
     os.makedirs(savefolder, exist_ok=True)
     for sid in minding_sid_list:
@@ -36,7 +35,6 @@ def get_chip_major():
             print(f"[{datetime.now()}] Occured ab error: {e}")
 
 if  __name__ == '__main__':
-    get_chip_major()
     print("Start Fetching the chip major data...")
     timing = "08:30"
     schedule.every().monday.at(timing).do(get_chip_major)
