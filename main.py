@@ -26,7 +26,7 @@ def get_chip_major():
             start_time = datetime.now()
             print(f"[{start_time}] Fetching {sid} chip major data...")
             df = fetcher.fetch_data(sid=sid, finance_info=FinanceInfo.chip_major)
-            df.to_csv(filename)
+            df.to_csv(filename, index=False)
             end_time = datetime.now()
             print(f"[{end_time}] Finished to fetch {sid} chip major data. "
                   f"Elapsed time: {end_time - start_time}")
