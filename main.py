@@ -10,14 +10,16 @@ minding_sid_list = [
     2618,
     5274,
     3443,
-    2454
+    2454,
+    1904
 ]
 
 def get_chip_major():
     fetcher = YhaooTWStockFetcher()
     today = datetime.now().date().strftime("%Y-%m-%d")
+    week = f"Week {datetime.now().isocalendar()[1]}"
     homepath = os.path.expanduser("~")
-    basedir = os.path.join(homepath, "Downloads", "Major-Chip-data")
+    basedir = os.path.join(homepath, "Downloads", "Major-Chip-data", week)
     savefolder = os.path.join(basedir, today)
     os.makedirs(savefolder, exist_ok=True)
     for sid in minding_sid_list:
@@ -35,7 +37,12 @@ def get_chip_major():
 
 if  __name__ == '__main__':
     print("Start Fetching the chip major data...")
-    job = schedule.every().day.at("08:30").do(get_chip_major)
+    timing = "08:30"
+    schedule.every().monday.at(timing).do(get_chip_major)
+    schedule.every().tuesday.at(timing).do(get_chip_major)
+    schedule.every().wednesday.at(timing).do(get_chip_major)
+    schedule.every().thursday.at(timing).do(get_chip_major)
+    schedule.every().friday.at(timing).do(get_chip_major)
     while True:
         schedule.run_pending()
         time.sleep(30)
