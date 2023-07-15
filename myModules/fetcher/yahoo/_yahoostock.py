@@ -2,7 +2,7 @@ import requests
 from lxml import etree
 from myModules.fetcher import BaseFetcher
 from ._parse import Parser
-from ._utils import *
+from ._utils import FinanceInfo, get_url
 
 NOT_SUPPORT = None
 
