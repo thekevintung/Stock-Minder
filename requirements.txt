@@ -4,3 +4,5 @@ pandas
 requests
 schedule
 yfinance
+openpyxl
+xlsxwriter
