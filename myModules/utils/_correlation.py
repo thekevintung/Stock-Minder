@@ -5,44 +5,44 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
 from statistics import correlation
-
-minding_sid_list = [
-    "2330.TW",
-    "2382.TW",
-    "2618.TW",
-    "5274.TWO",
-    "3443.TW",
-    "2454.TW"
-]
+from openpyxl.utils import get_column_letter
 
 DATE_FORMAT = "%Y-%m-%d"
 
-homepath = os.path.expanduser("~")
-basedir = os.path.join(homepath, "Downloads", "Major-Chip-data")
-output_report = os.path.join(homepath, "Downloads", "Major-Chip-data", "analysis.xlsx")
-
-# Define a custom sorting function that extracts the numeric part of the week string
 def extract_week_number(week: str):
+    # define a custom sorting function that extracts 
+    # the numeric part of the week string
     return int(week.split()[1])
+
+def get_dates_from_filenames(filenames:list) -> list:
+    dates = [os.path.dirname(f).split("/")[-1] for f in filenames]
+    dates = [datetime.strptime(d, DATE_FORMAT).strftime(DATE_FORMAT) for d in dates]
+    return dates
 
 def get_sid_weekly_buy_from_csv_files(csv_files:str) -> pd.DataFrame:
     corp_buy = pd.DataFrame()
     for i, csv in enumerate(csv_files):
-        df = pd.read_csv(csv)
-        if any(["Unnamed" in col for col in df.columns]):
-            df = df.iloc[:, 1:]
-        data = np.concatenate([df.iloc[:,:4].values, df.iloc[:,4:].values])
-        df = pd.DataFrame(data, columns=df.columns[0:4])
-        buy = (df.iloc[:, -1].replace(",", "", regex=True).astype(float))
-        buy.name = i
-        buy.index = df.iloc[:, 0]
-        corp_buy = pd.concat([corp_buy, buy], axis=1)
-        
-    corp_buy = corp_buy.fillna(0)
-    # remove rows with empty index
-    corp_buy = corp_buy[corp_buy.index.notnull()] 
-    corp_buy = corp_buy.transpose()
-    corp_buy.index = get_dates_from_filenames(csv_files)
+        try:
+            df = pd.read_csv(csv)
+            if any(["Unnamed" in col for col in df.columns]):
+                df = df.iloc[:, 1:]
+            data = np.concatenate([df.iloc[:,:4].values, df.iloc[:,4:].values])
+            df = pd.DataFrame(data, columns=df.columns[0:4])
+            buy = (df.iloc[:, -1].replace(",", "", regex=True).astype(float))
+            buy.name = i
+            buy.index = df.iloc[:, 0]
+            buy = buy[buy.index.notnull()]
+            corp_buy = pd.concat([corp_buy, buy], axis=1, ignore_index=True)
+        except Exception as e:
+            print(f"Failed to read {csv}. {e}.")
+
+    if len(corp_buy):
+        corp_buy = corp_buy.fillna(0)
+        # remove rows with empty index
+        corp_buy = corp_buy[corp_buy.index.notnull()] 
+        corp_buy = corp_buy.transpose()
+        corp_buy.index = get_dates_from_filenames(csv_files)
+
     return corp_buy
 
 def get_sid_price_change(sid:str, start:str, end:str, timeout=15) -> pd.Series:
@@ -58,12 +58,6 @@ def get_sid_price_change(sid:str, start:str, end:str, timeout=15) -> pd.Series:
     # to calculate the price change of the first day in a period, 
     # ignore the first day to remove the inserted date calculation
     return price_change[1:]
-
-def get_dates_from_filenames(filenames:list) -> list:
-    dates = [os.path.dirname(f).split("/")[-1] for f in filenames]
-    dates = [datetime.strptime(d, DATE_FORMAT).strftime(DATE_FORMAT) for d in dates]
-    dates = sorted(dates, key=lambda x: datetime.strptime(x, DATE_FORMAT))
-    return dates
 
 def check_period(dates:list) -> list:
     # insert a date at the beginning of the dates to be able to calculate the 
@@ -92,22 +86,26 @@ def calculate_correlation(df:pd.DataFrame, y:pd.Series) -> pd.DataFrame:
   
     return pd.DataFrame(corr)
 
-if  __name__ == '__main__':
-    # remove the output report if exists
-    if os.path.exists(output_report):
-        os.remove(output_report)
+# def dump_analysis(df):
 
-    weeks = [d for d in os.listdir(basedir) if os.path.isdir(os.path.join(basedir, d))]
+def generate_correlation_analysis(minding_sid_list:list[str], 
+                                  database_dir: str, output_file:str) -> None:
+    
+    # remove if output file exists
+    if os.path.exists(output_file):
+        os.remove(output_file)
+
+    weeks = [d for d in os.listdir(database_dir) if os.path.isdir(os.path.join(database_dir, d))]
     weeks = sorted(weeks, key=extract_week_number)
 
-    writer = pd.ExcelWriter(output_report)
+    writer = pd.ExcelWriter(output_file, engine='openpyxl')
     
     for sid in minding_sid_list:
         history_corr = pd.DataFrame()
         for week in weeks:
             try:
                 # get all csv files in week folder
-                path = os.path.join(basedir, week)
+                path = os.path.join(database_dir, week)
                 csv_files = glob.glob(path + f'/**/{sid}.csv')
                 if len(csv_files)==0:
                     # if failed, try to get csv files by remove the suffix
@@ -115,8 +113,13 @@ if  __name__ == '__main__':
                 if len(csv_files)==0:
                     continue
 
+                # sort the csv files path based on the date
+                csv_files = sorted(csv_files, key=os.path.getmtime)
                 dates = get_dates_from_filenames(csv_files)
                 sid_weekly_buy = get_sid_weekly_buy_from_csv_files(csv_files)
+                if len(sid_weekly_buy)==0:
+                    print(f"Unable to get weekly buy volume of {sid} for {week}.")
+                    continue
                 price_change = get_sid_price_change(sid, start=dates[0], end=dates[-1])
                 if len(sid_weekly_buy)!=len(price_change):
                     print(f"The number of files in {week} does not "
@@ -136,20 +139,25 @@ if  __name__ == '__main__':
                 corr = calculate_correlation(sid_weekly_buy, price_change)
                 corr.columns = [f"{week} Corp", f"{week} Corr"]
                 history_corr = pd.concat([history_corr, corr], axis=1)
-                history_corr.insert(history_corr.shape[-1], history_corr.shape[-1], "")
+                history_corr.insert(history_corr.shape[-1], "", "", allow_duplicates=True)
             except Exception as e:
                 print(e)
 
         try:
+            # check if got empty data
+            if len(history_corr)==0: 
+                continue
+
             history_corr = history_corr.fillna("")
             history_corr.to_excel(writer, sheet_name=str(sid), index=False)
 
             # auto-adjust columns' width
-            for col in history_corr:
-                col_width = max(history_corr[col].astype(str).map(len).max(), len(str(col)))
-                if col_width < 10: col_width=10
-                col_idx = history_corr.columns.get_loc(col)
-                writer.sheets[str(sid)].set_column(col_idx, col_idx, col_width)
+            worksheet = writer.sheets[str(sid)]
+            for column in worksheet.columns:
+                column_width = max([len(str(col.value)) for col in column]) + 2
+                if column_width < 10: column_width = 10
+                column_letter = get_column_letter(column[0].column)
+                worksheet.column_dimensions[column_letter].width = column_width
         except Exception as e:
             print(e)
     writer.close()

@@ -30,8 +30,18 @@ class YhaooTWStockFetcher(BaseFetcher):
             FinanceInfo.compare: NOT_SUPPORT,
             FinanceInfo.calendar: NOT_SUPPORT,
         }
+    
+    def check_sid(self, sid):
+        if isinstance(sid, int):
+            return sid
+        elif isinstance(sid, str):
+            # remove TW or TWO, etc. suffix
+            return sid.split(".")[0]
+        else:
+            raise ValueError(f"The type of sid is invalid, must be int or str.")
 
     def fetch_data(self, sid:int, finance_info:str):
+        sid = self.check_sid(sid)
         url = get_url(sid, finance_info)
         response = requests.get(url, timeout=5)
         root = etree.HTML(response.text)
